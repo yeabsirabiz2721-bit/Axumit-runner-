@@ -12,7 +12,7 @@
       font-family: Arial;
     }
 
-    /* 🎬 Intro screen */
+    /* 🎬 Intro */
     #splash {
       position: fixed;
       width: 100%;
@@ -36,7 +36,7 @@
       left: 50%;
     }
 
-    /* 🔴 Obstacles */
+    /* 🔴 Blocks */
     .block {
       width: 40px;
       height: 40px;
@@ -59,9 +59,7 @@
 <body>
 
   <!-- 🎬 Intro -->
-  <div id="splash">
-    AXUMIT STUDIOS
-  </div>
+  <div id="splash">AXUMIT STUDIOS</div>
 
   <div id="player"></div>
   <div id="score">Score: 0 | High Score: 0</div>
@@ -78,13 +76,13 @@
     let gameStarted = false;
     let gameOver = false;
 
-    // Start game after intro
+    // 🎬 start game
     setTimeout(() => {
       splash.style.display = "none";
       gameStarted = true;
     }, 2500);
 
-    // Controls
+    // 🎮 PC controls
     document.addEventListener("keydown", (e) => {
       if (!gameStarted || gameOver) return;
 
@@ -95,7 +93,18 @@
       player.style.left = playerX + "px";
     });
 
-    // Create falling blocks
+    // 📱 Mobile touch controls
+    document.addEventListener("touchmove", (e) => {
+      if (!gameStarted || gameOver) return;
+
+      let touchX = e.touches[0].clientX;
+      playerX = touchX - 20;
+
+      playerX = Math.max(0, Math.min(window.innerWidth - 40, playerX));
+      player.style.left = playerX + "px";
+    });
+
+    // 🔴 blocks
     function createBlock() {
       if (!gameStarted || gameOver) return;
 
@@ -119,7 +128,7 @@
         const p = player.getBoundingClientRect();
         const b = block.getBoundingClientRect();
 
-        // Collision
+        // 💥 collision
         if (
           p.left < b.right &&
           p.right > b.left &&
@@ -137,7 +146,7 @@
           location.reload();
         }
 
-        // Score
+        // 📈 score
         if (y > window.innerHeight) {
           block.remove();
           clearInterval(fall);
@@ -154,4 +163,3 @@
 
 </body>
 </html>
-      

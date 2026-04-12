@@ -69,12 +69,89 @@
 
   <script>
     const splash = document.getElementById("splash");
-    const player = document.getElementById("player");
-    const scoreText = document.getElementById("score");
+const player = document.getElementById("player");
+const scoreText = document.getElementById("score");
 
-    let score = 0;
-    let playerX = window.innerWidth / 2;
-    let gameStarted = false;
+let score = 0;
+let highScore = localStorage.getItem("highScore") || 0;
+
+let playerX = window.innerWidth / 2 - 20;
+let gameStarted = false;
+let gameOver = false;
+
+// show intro then start
+setTimeout(() => {
+  splash.style.display = "none";
+  gameStarted = true;
+}, 2500);
+
+// controls (FIXED)
+document.addEventListener("keydown", (e) => {
+  if (!gameStarted || gameOver) return;
+
+  if (e.key === "ArrowLeft") playerX -= 30;
+  if (e.key === "ArrowRight") playerX += 30;
+
+  playerX = Math.max(0, Math.min(window.innerWidth - 40, playerX));
+  player.style.left = playerX + "px";
+});
+
+// blocks
+function createBlock() {
+  if (!gameStarted || gameOver) return;
+
+  const block = document.createElement("div");
+  block.classList.add("block");
+  block.style.left = Math.random() * (window.innerWidth - 40) + "px";
+  document.body.appendChild(block);
+
+  let y = 0;
+
+  let fall = setInterval(() => {
+    if (gameOver) {
+      clearInterval(fall);
+      block.remove();
+      return;
+    }
+
+    y += 5;
+    block.style.top = y + "px";
+
+    const p = player.getBoundingClientRect();
+    const b = block.getBoundingClientRect();
+
+    // collision
+    if (
+      p.left < b.right &&
+      p.right > b.left &&
+      p.top < b.bottom &&
+      p.bottom > b.top
+    ) {
+      gameOver = true;
+
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem("highScore", highScore);
+      }
+
+      alert("Game Over!\nScore: " + score + "\nHigh Score: " + highScore);
+
+      setTimeout(() => location.reload(), 500);
+    }
+
+    // score
+    if (y > window.innerHeight) {
+      block.remove();
+      clearInterval(fall);
+      score++;
+
+      scoreText.innerText = 
+        "Score: " + score + " | High Score: " + highScore;
+    }
+  }, 20);
+}
+
+setInterval(createBlock, 900);
 
     // ⏱️ Start game after intro
     setTimeout(() => {

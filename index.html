@@ -32,8 +32,8 @@
       height: 40px;
       background: cyan;
       position: absolute;
-      bottom: 20px;
       left: 50%;
+      top: 80%;
     }
 
     /* 🔴 Blocks */
@@ -58,7 +58,7 @@
 
 <body>
 
-  <!-- 🎬 Intro -->
+  <!-- 🎬 Intro screen -->
   <div id="splash">AXUMIT STUDIOS</div>
 
   <div id="player"></div>
@@ -73,38 +73,53 @@
     let highScore = localStorage.getItem("highScore") || 0;
 
     let playerX = window.innerWidth / 2 - 20;
+    let playerY = window.innerHeight - 100;
+
     let gameStarted = false;
     let gameOver = false;
 
-    // 🎬 start game
+    let fallSpeed = 5;
+
+    // 🎬 Start game
     setTimeout(() => {
       splash.style.display = "none";
       gameStarted = true;
     }, 2500);
 
-    // 🎮 PC controls
+    // 🎮 Keyboard controls (4 directions)
     document.addEventListener("keydown", (e) => {
       if (!gameStarted || gameOver) return;
 
       if (e.key === "ArrowLeft") playerX -= 30;
       if (e.key === "ArrowRight") playerX += 30;
+      if (e.key === "ArrowUp") playerY -= 30;
+      if (e.key === "ArrowDown") playerY += 30;
 
       playerX = Math.max(0, Math.min(window.innerWidth - 40, playerX));
+      playerY = Math.max(0, Math.min(window.innerHeight - 40, playerY));
+
       player.style.left = playerX + "px";
+      player.style.top = playerY + "px";
     });
 
-    // 📱 Mobile touch controls
+    // 📱 Touch controls
     document.addEventListener("touchmove", (e) => {
       if (!gameStarted || gameOver) return;
 
-      let touchX = e.touches[0].clientX;
-      playerX = touchX - 20;
+      let x = e.touches[0].clientX;
+      let y = e.touches[0].clientY;
+
+      playerX = x - 20;
+      playerY = y - 20;
 
       playerX = Math.max(0, Math.min(window.innerWidth - 40, playerX));
+      playerY = Math.max(0, Math.min(window.innerHeight - 40, playerY));
+
       player.style.left = playerX + "px";
+      player.style.top = playerY + "px";
     });
 
-    // 🔴 blocks
+    // 🔴 Blocks
     function createBlock() {
       if (!gameStarted || gameOver) return;
 
@@ -122,13 +137,13 @@
           return;
         }
 
-        y += 5;
+        y += fallSpeed;
         block.style.top = y + "px";
 
         const p = player.getBoundingClientRect();
         const b = block.getBoundingClientRect();
 
-        // 💥 collision
+        // 💥 Collision
         if (
           p.left < b.right &&
           p.right > b.left &&
@@ -146,7 +161,7 @@
           location.reload();
         }
 
-        // 📈 score
+        // 📈 Score + difficulty
         if (y > window.innerHeight) {
           block.remove();
           clearInterval(fall);
@@ -154,6 +169,10 @@
           score++;
           scoreText.innerText =
             "Score: " + score + " | High Score: " + highScore;
+
+          if (score % 5 === 0) {
+            fallSpeed += 1;
+          }
         }
       }, 20);
     }

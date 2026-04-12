@@ -23,7 +23,6 @@
       justify-content: center;
       align-items: center;
       font-size: 40px;
-      flex-direction: column;
       z-index: 9999;
     }
 
@@ -59,121 +58,46 @@
 
 <body>
 
-  <!-- 🎬 Axumit Studios intro -->
+  <!-- 🎬 Intro -->
   <div id="splash">
     AXUMIT STUDIOS
   </div>
 
   <div id="player"></div>
-  <div id="score">Score: 0</div>
+  <div id="score">Score: 0 | High Score: 0</div>
 
   <script>
     const splash = document.getElementById("splash");
-const player = document.getElementById("player");
-const scoreText = document.getElementById("score");
+    const player = document.getElementById("player");
+    const scoreText = document.getElementById("score");
 
-let score = 0;
-let highScore = localStorage.getItem("highScore") || 0;
+    let score = 0;
+    let highScore = localStorage.getItem("highScore") || 0;
 
-let playerX = window.innerWidth / 2 - 20;
-let gameStarted = false;
-let gameOver = false;
+    let playerX = window.innerWidth / 2 - 20;
+    let gameStarted = false;
+    let gameOver = false;
 
-// show intro then start
-setTimeout(() => {
-  splash.style.display = "none";
-  gameStarted = true;
-}, 2500);
-
-// controls (FIXED)
-document.addEventListener("keydown", (e) => {
-  if (!gameStarted || gameOver) return;
-
-  if (e.key === "ArrowLeft") playerX -= 30;
-  if (e.key === "ArrowRight") playerX += 30;
-
-  playerX = Math.max(0, Math.min(window.innerWidth - 40, playerX));
-  player.style.left = playerX + "px";
-});
-
-// blocks
-function createBlock() {
-  if (!gameStarted || gameOver) return;
-
-  const block = document.createElement("div");
-  block.classList.add("block");
-  block.style.left = Math.random() * (window.innerWidth - 40) + "px";
-  document.body.appendChild(block);
-
-  let y = 0;
-
-  let fall = setInterval(() => {
-    if (gameOver) {
-      clearInterval(fall);
-      block.remove();
-      return;
-    }
-
-    y += 5;
-    block.style.top = y + "px";
-
-    const p = player.getBoundingClientRect();
-    const b = block.getBoundingClientRect();
-
-    // collision
-    if (
-      p.left < b.right &&
-      p.right > b.left &&
-      p.top < b.bottom &&
-      p.bottom > b.top
-    ) {
-      gameOver = true;
-
-      if (score > highScore) {
-        highScore = score;
-        localStorage.setItem("highScore", highScore);
-      }
-
-      alert("Game Over!\nScore: " + score + "\nHigh Score: " + highScore);
-
-      setTimeout(() => location.reload(), 500);
-    }
-
-    // score
-    if (y > window.innerHeight) {
-      block.remove();
-      clearInterval(fall);
-      score++;
-
-      scoreText.innerText = 
-        "Score: " + score + " | High Score: " + highScore;
-    }
-  }, 20);
-}
-
-setInterval(createBlock, 900);
-
-    // ⏱️ Start game after intro
+    // Start game after intro
     setTimeout(() => {
       splash.style.display = "none";
       gameStarted = true;
     }, 2500);
 
-    // 🎮 Controls
+    // Controls
     document.addEventListener("keydown", (e) => {
-  if (!gameStarted) return;
+      if (!gameStarted || gameOver) return;
 
-  if (e.key === "ArrowLeft") playerX -= 25;
-  if (e.key === "ArrowRight") playerX += 25;
+      if (e.key === "ArrowLeft") playerX -= 30;
+      if (e.key === "ArrowRight") playerX += 30;
 
-  // keep player inside screen
-  playerX = Math.max(0, Math.min(window.innerWidth - 40, playerX));
+      playerX = Math.max(0, Math.min(window.innerWidth - 40, playerX));
+      player.style.left = playerX + "px";
+    });
 
-  player.style.left = playerX + "px";
-});
-    // 🔴 Create falling blocks
+    // Create falling blocks
     function createBlock() {
-      if (!gameStarted) return;
+      if (!gameStarted || gameOver) return;
 
       const block = document.createElement("div");
       block.classList.add("block");
@@ -183,35 +107,51 @@ setInterval(createBlock, 900);
       let y = 0;
 
       let fall = setInterval(() => {
+        if (gameOver) {
+          clearInterval(fall);
+          block.remove();
+          return;
+        }
+
         y += 5;
         block.style.top = y + "px";
 
         const p = player.getBoundingClientRect();
         const b = block.getBoundingClientRect();
 
-        // 💥 Collision
-        if(
+        // Collision
+        if (
           p.left < b.right &&
           p.right > b.left &&
           p.top < b.bottom &&
           p.bottom > b.top
         ) {
-          alert("Game Over! Score: " + score);
+          gameOver = true;
+
+          if (score > highScore) {
+            highScore = score;
+            localStorage.setItem("highScore", highScore);
+          }
+
+          alert("Game Over!\nScore: " + score + "\nHigh Score: " + highScore);
           location.reload();
         }
 
-        // 📈 Score update
+        // Score
         if (y > window.innerHeight) {
           block.remove();
           clearInterval(fall);
+
           score++;
-          scoreText.innerText = "Score: " + score;
+          scoreText.innerText =
+            "Score: " + score + " | High Score: " + highScore;
         }
       }, 20);
     }
 
-    setInterval(createBlock, 1000);
+    setInterval(createBlock, 900);
   </script>
 
 </body>
 </html>
+      

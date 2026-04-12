@@ -35,7 +35,6 @@
       position: absolute;
       bottom: 20px;
       left: 50%;
-      transform: translateX(-50%);
     }
 
     /* 🔴 Obstacles */
@@ -85,14 +84,16 @@
 
     // 🎮 Controls
     document.addEventListener("keydown", (e) => {
-      if (!gameStarted) return;
+  if (!gameStarted) return;
 
-      if (e.key === "ArrowLeft") playerX -= 25;
-      if (e.key === "ArrowRight") playerX += 25;
+  if (e.key === "ArrowLeft") playerX -= 25;
+  if (e.key === "ArrowRight") playerX += 25;
 
-      player.style.left = playerX + "px";
-    });
+  // keep player inside screen
+  playerX = Math.max(0, Math.min(window.innerWidth - 40, playerX));
 
+  player.style.left = playerX + "px";
+});
     // 🔴 Create falling blocks
     function createBlock() {
       if (!gameStarted) return;

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Axumit Runner</title>
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+      font-family: Arial;
+    }
+
+    /* 🎬 Intro screen */
+    #splash {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: black;
+      color: cyan;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 40px;
+      flex-direction: column;
+      z-index: 9999;
+    }
+
+    /* 🎮 Player */
+    #player {
+      width: 40px;
+      height: 40px;
+      background: cyan;
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* 🔴 Obstacles */
+    .block {
+      width: 40px;
+      height: 40px;
+      background: red;
+      position: absolute;
+      top: 0;
+    }
+
+    /* 📊 Score */
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-size: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- 🎬 Axumit Studios intro -->
+  <div id="splash">
+    AXUMIT STUDIOS
+  </div>
+
+  <div id="player"></div>
+  <div id="score">Score: 0</div>
+
+  <script>
+    const splash = document.getElementById("splash");
+    const player = document.getElementById("player");
+    const scoreText = document.getElementById("score");
+
+    let score = 0;
+    let playerX = window.innerWidth / 2;
+    let gameStarted = false;
+
+    // ⏱️ Start game after intro
+    setTimeout(() => {
+      splash.style.display = "none";
+      gameStarted = true;
+    }, 2500);
+
+    // 🎮 Controls
+    document.addEventListener("keydown", (e) => {
+      if (!gameStarted) return;
+
+      if (e.key === "ArrowLeft") playerX -= 25;
+      if (e.key === "ArrowRight") playerX += 25;
+
+      player.style.left = playerX + "px";
+    });
+
+    // 🔴 Create falling blocks
+    function createBlock() {
+      if (!gameStarted) return;
+
+      const block = document.createElement("div");
+      block.classList.add("block");
+      block.style.left = Math.random() * (window.innerWidth - 40) + "px";
+      document.body.appendChild(block);
+
+      let y = 0;
+
+      let fall = setInterval(() => {
+        y += 5;
+        block.style.top = y + "px";
+
+        const p = player.getBoundingClientRect();
+        const b = block.getBoundingClientRect();
+
+        // 💥 Collision
+        if(
+          p.left < b.right &&
+          p.right > b.left &&
+          p.top < b.bottom &&
+          p.bottom > b.top
+        ) {
+          alert("Game Over! Score: " + score);
+          location.reload();
+        }
+
+        // 📈 Score update
+        if (y > window.innerHeight) {
+          block.remove();
+          clearInterval(fall);
+          score++;
+          scoreText.innerText = "Score: " + score;
+        }
+      }, 20);
+    }
+
+    setInterval(createBlock, 1000);
+  </script>
+
+</body>
+</html>

@@ -1,184 +1,171 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
   <title>Axumit Runner</title>
-
   <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: black;
-      font-family: Arial;
-    }
-
-    /* 🎬 Intro */
-    #splash {
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      background: black;
-      color: cyan;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 40px;
-      z-index: 9999;
-    }
-
-    /* 🎮 Player */
-    #player {
-      width: 40px;
-      height: 40px;
-      background: cyan;
-      position: absolute;
-      left: 50%;
-      top: 80%;
-    }
-
-    /* 🔴 Blocks */
-    .block {
-      width: 40px;
-      height: 40px;
-      background: red;
-      position: absolute;
-      top: 0;
-    }
-
-    /* 📊 Score */
-    #score {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      color: white;
-      font-size: 20px;
-    }
+    body { margin: 0; overflow: hidden; background: black; }
+    canvas { display: block; }
   </style>
 </head>
-
 <body>
 
-  <!-- 🎬 Intro screen -->
-  <div id="splash">AXUMIT STUDIOS</div>
+<canvas id="gameCanvas"></canvas>
 
-  <div id="player"></div>
-  <div id="score">Score: 0 | High Score: 0</div>
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-  <script>
-    const splash = document.getElementById("splash");
-    const player = document.getElementById("player");
-    const scoreText = document.getElementById("score");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-    let score = 0;
-    let highScore = localStorage.getItem("highScore") || 0;
+// GAME VARIABLES
+let gameState = "start";
+let player = { x: canvas.width / 2, y: canvas.height - 100, size: 25 };
+let obstacles = [];
+let score = 0;
+let speed = 2;
 
-    let playerX = window.innerWidth / 2 - 20;
-    let playerY = window.innerHeight - 100;
+// INPUT
+document.addEventListener("click", () => {
+    if (gameState === "start" || gameState === "gameover") {
+        startGame();
+    } else {
+        movePlayer();
+    }
+});
 
-    let gameStarted = false;
-    let gameOver = false;
+function movePlayer() {
+    player.x += (Math.random() - 0.5) * 100;
+}
 
-    let fallSpeed = 5;
+// START GAME
+function startGame() {
+    gameState = "playing";
+    score = 0;
+    speed = 2;
+    obstacles = [];
+    player.x = canvas.width / 2;
+}
 
-    // 🎬 Start game
-    setTimeout(() => {
-      splash.style.display = "none";
-      gameStarted = true;
-    }, 2500);
+// CREATE OBSTACLES
+function spawnObstacle() {
+    let x = Math.random() * canvas.width;
+    obstacles.push({ x: x, y: 0, size: 20 });
+}
 
-    // 🎮 Keyboard controls (4 directions)
-    document.addEventListener("keydown", (e) => {
-      if (!gameStarted || gameOver) return;
+// UPDATE GAME
+function updateGame() {
+    speed += 0.002;
+    score++;
 
-      if (e.key === "ArrowLeft") playerX -= 30;
-      if (e.key === "ArrowRight") playerX += 30;
-      if (e.key === "ArrowUp") playerY -= 30;
-      if (e.key === "ArrowDown") playerY += 30;
-
-      playerX = Math.max(0, Math.min(window.innerWidth - 40, playerX));
-      playerY = Math.max(0, Math.min(window.innerHeight - 40, playerY));
-
-      player.style.left = playerX + "px";
-      player.style.top = playerY + "px";
-    });
-
-    // 📱 Touch controls
-    document.addEventListener("touchmove", (e) => {
-      if (!gameStarted || gameOver) return;
-
-      let x = e.touches[0].clientX;
-      let y = e.touches[0].clientY;
-
-      playerX = x - 20;
-      playerY = y - 20;
-
-      playerX = Math.max(0, Math.min(window.innerWidth - 40, playerX));
-      playerY = Math.max(0, Math.min(window.innerHeight - 40, playerY));
-
-      player.style.left = playerX + "px";
-      player.style.top = playerY + "px";
-    });
-
-    // 🔴 Blocks
-    function createBlock() {
-      if (!gameStarted || gameOver) return;
-
-      const block = document.createElement("div");
-      block.classList.add("block");
-      block.style.left = Math.random() * (window.innerWidth - 40) + "px";
-      document.body.appendChild(block);
-
-      let y = 0;
-
-      let fall = setInterval(() => {
-        if (gameOver) {
-          clearInterval(fall);
-          block.remove();
-          return;
-        }
-
-        y += fallSpeed;
-        block.style.top = y + "px";
-
-        const p = player.getBoundingClientRect();
-        const b = block.getBoundingClientRect();
-
-        // 💥 Collision
-        if (
-          p.left < b.right &&
-          p.right > b.left &&
-          p.top < b.bottom &&
-          p.bottom > b.top
-        ) {
-          gameOver = true;
-
-          if (score > highScore) {
-            highScore = score;
-            localStorage.setItem("highScore", highScore);
-          }
-
-          alert("Game Over!\nScore: " + score + "\nHigh Score: " + highScore);
-          location.reload();
-        }
-
-        // 📈 Score + difficulty
-        if (y > window.innerHeight) {
-          block.remove();
-          clearInterval(fall);
-
-          score++;
-          scoreText.innerText =
-            "Score: " + score + " | High Score: " + highScore;
-
-          if (score % 5 === 0) {
-            fallSpeed += 1;
-          }
-        }
-      }, 20);
+    if (Math.random() < 0.03) {
+        spawnObstacle();
     }
 
-    setInterval(createBlock, 900);
-  </script>
+    obstacles.forEach(o => {
+        o.y += speed;
+
+        // COLLISION
+        if (
+            player.x < o.x + o.size &&
+            player.x + player.size > o.x &&
+            player.y < o.y + o.size &&
+            player.y + player.size > o.y
+        ) {
+            gameState = "gameover";
+        }
+    });
+
+    obstacles = obstacles.filter(o => o.y < canvas.height);
+}
+
+// DRAW GAME
+function drawGame() {
+    // BACKGROUND GRADIENT
+    let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, "#0f2027");
+    gradient.addColorStop(1, "#000000");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (gameState === "start") {
+        drawStartScreen();
+        return;
+    }
+
+    if (gameState === "playing") {
+        drawPlayer();
+        drawObstacles();
+
+        ctx.fillStyle = "white";
+        ctx.font = "18px Arial";
+        ctx.fillText("Score: " + score, 20, 30);
+    }
+
+    if (gameState === "gameover") {
+        drawPlayer();
+        drawObstacles();
+        drawGameOver();
+    }
+}
+
+// PLAYER
+function drawPlayer() {
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = "cyan";
+
+    ctx.fillStyle = "cyan";
+    ctx.fillRect(player.x, player.y, player.size, player.size);
+
+    ctx.shadowBlur = 0;
+}
+
+// OBSTACLES
+function drawObstacles() {
+    ctx.fillStyle = "red";
+    obstacles.forEach(o => {
+        ctx.fillRect(o.x, o.y, o.size, o.size);
+    });
+}
+
+// START SCREEN
+function drawStartScreen() {
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+
+    ctx.font = "30px Arial";
+    ctx.fillText("Axumit Runner", canvas.width / 2, canvas.height / 2 - 20);
+
+    ctx.font = "20px Arial";
+    ctx.fillText("Tap to Start", canvas.width / 2, canvas.height / 2 + 20);
+}
+
+// GAME OVER SCREEN
+function drawGameOver() {
+    ctx.fillStyle = "red";
+    ctx.textAlign = "center";
+
+    ctx.font = "30px Arial";
+    ctx.fillText("Game Over", canvas.width / 2, canvas.height / 2 - 20);
+
+    ctx.fillStyle = "white";
+    ctx.font = "20px Arial";
+    ctx.fillText("Score: " + score, canvas.width / 2, canvas.height / 2 + 20);
+    ctx.fillText("Tap to Restart", canvas.width / 2, canvas.height / 2 + 50);
+}
+
+// GAME LOOP
+function gameLoop() {
+    if (gameState === "playing") {
+        updateGame();
+    }
+
+    drawGame();
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
 
 </body>
 </html>
